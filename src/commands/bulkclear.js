@@ -6,8 +6,8 @@ import quickReply from "./utils/quickReply.js";
  * @param {Interaction} interaction
  */
 async function bulkclear(interaction) {
-	await interaction.channel.bulkDelete(100);
-	await quickReply(interaction, "Deleted 100 messages");
+	let deleted = await interaction.channel.bulkDelete(100);
+	await quickReply(interaction, `Deleted ${deleted.size} messages`);
 }
 
 export default bulkclear;

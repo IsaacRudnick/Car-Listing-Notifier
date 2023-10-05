@@ -181,13 +181,29 @@ class Car {
 
 /**
  * Creates a Discord embed from a Car object
+ * The embed color will depend upon the current date, so that the color changes daily
+ *
  * @param {Car} car
  *
  * @return {Discord.MessageEmbed} A Discord embed
  */
 async function createEmbed(car) {
+	let today = new Date();
+	// Get hex color from current time
+	// This way, the color changes any time the command is run and updated / new embeds will stick out
+	const hex =
+		"#" +
+		(today.getHours() < 10 ? "0" : "") +
+		today.getHours() +
+		"" +
+		(today.getMinutes() < 10 ? "0" : "") +
+		today.getMinutes() +
+		"" +
+		(today.getSeconds() < 10 ? "0" : "") +
+		today.getSeconds();
+
 	const embed = new EmbedBuilder()
-		.setColor("#0099ff")
+		.setColor(hex)
 		.setTitle(car.name)
 		.setURL(car.url)
 		.setImage(car.imageUrl)
