@@ -14,7 +14,7 @@ dotenv.config();
  *    The same in the channel and on the website, do nothing
  * 	  Not in the channel at all, add it to the channel
  *    In the channel w/ different details (e.g. price) than on the website, update the Discord channel listing
- * 5. TODO: If a listing is in the Discord channel but not in the website, remove it from the Discord channel
+ * 5. If a listing is in the Discord channel but not in the website, remove it from the Discord channel
  * @param {Interaction} interaction
  */
 async function refresh(interaction) {
@@ -25,45 +25,65 @@ async function refresh(interaction) {
 		limit: 100,
 	});
 	// Get cars postings only in Discord channel (Discord.Message objects)
-	const discordCars = discordMessages.filter((msg) => {
-		return msg.embeds.length > 0;
-	});
+	// At the end of the first loop, this will contain only the cars that are no longer on the website
+	// but are still in the Discord channel. These cars will be deleted from the channel.
+	let discordCars = discordMessages.filter((msg) => msg.embeds.length > 0);
 
 	for (let i = 0; i < onlineCars.length; i++) {
 		const car = onlineCars[i];
 
+		// ==================================================
 		// Check if car w/ same details is in Discord channel
-		let hasExactMatch = await Array.from(discordCars.values()).some((msg) => {
-			return messageUTD(msg, car);
-		});
-
+		let hasExactMatch = false;
+		for (const [messageID, message] of discordCars) {
+			if (await messageUTD(message, car)) {
+				hasExactMatch = true;
+				// Remove car from discordCars so message isn't deleted later
+				discordCars.delete(messageID);
+				break;
+			}
+		}
 		if (hasExactMatch) {
 			continue;
 		}
+		// ==================================================
 
 		numOfChanges++;
 		// If no exact match, there is either a partial match or the car is entirely new
 		//Determine which of these things is the case below
 
-		// Check if car w/ same VIN (but different info) is in Discord channel
-		let matchingVINs = discordCars.filter((msg) => {
-			// the VIN is stored in the 5th field of the embed (index 4)
-			// trim() to remove whitespace (issues arise otherwise)
-			return msg.embeds[0].fields[4].value.trim() == car.vin.trim();
-		});
-		let hasOutdatedMatch = matchingVINs.size >= 1;
+		// ==================================================
+		// Check for partial (VIN) match
+		let hasOutdatedMatch = false;
+		for (const [messageID, message] of discordCars) {
+			if (message.embeds[0].fields[4].value.trim() == car.vin.trim()) {
+				hasOutdatedMatch = true;
+				// Remove car from discordCars so message isn't deleted later
+				discordCars.delete(messageID);
+				// update message w/ new details (price, mileage, etc.)
+				await message.edit({
+					embeds: [await createEmbed(car)],
+				});
+				break;
+			}
+		}
 		if (hasOutdatedMatch) {
-			// Get first message w/ matching VIN
-			// If multiple messages have same VIN, only edit first one and ignore previous messages
-			Array.from(matchingVINs.values())[0].edit({
-				embeds: [await createEmbed(car)],
-			});
+			continue;
 		}
 
-		// If no VIN match, must be entirely new car; create new embed
+		// ==================================================
+		// If no VIN match, must be entirely new car (on website); create new embed
 		else {
-			interaction.channel.send({ embeds: [await createEmbed(car)] });
+			await interaction.channel.send({ embeds: [await createEmbed(car)] });
 		}
+	}
+
+	// Delete all cars that are in Discord channel but not on website
+	// discordCars should only contain cars that are no longer on the website at this point
+	for (const message of discordCars.values()) {
+		// Delete all cars that are in Discord channel but not on website
+		await message.delete();
+		numOfChanges++;
 	}
 
 	await quickReply(interaction, `Refreshed! ${numOfChanges} changes made.`);
@@ -121,9 +141,7 @@ async function getOnlineCars() {
 
 		var main_div = $("div").first();
 
-		let addCommas = (numStr) => {
-			return numStr.toLocaleString("en-US");
-		};
+		let addCommas = (numStr) => numStr.toLocaleString("en-US");
 
 		// Car info
 		let vin = main_div.data("vin");
