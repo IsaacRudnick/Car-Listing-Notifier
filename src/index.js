@@ -46,13 +46,19 @@ import refresh from "./commands/refresh.js";
 import bulkclear from "./commands/bulkclear.js";
 
 client.on("interactionCreate", async (interaction) => {
+	// If interaction is not a command, do nothing
 	if (!interaction.isChatInputCommand()) return;
-	else if (interaction.commandName === "ping") {
-		await ping(interaction);
-	} else if (interaction.commandName === "refresh") {
-		await refresh(interaction);
-	} else if (interaction.commandName === "bulkclear") {
-		await bulkclear(interaction);
+	// Otherwise, run the respective command
+	switch (interaction.commandName) {
+		case "ping":
+			await ping(interaction);
+			break;
+		case "refresh":
+			await refresh(interaction);
+			break;
+		case "bulkclear":
+			await bulkclear(interaction);
+			break;
 	}
 });
 
