@@ -1,4 +1,4 @@
 src/currentListings.json
-*.env
+.env
 node_modules/
 yarn.lock
