@@ -9,6 +9,14 @@ This is a discord bot that can be asked to search a website for cars matching sp
 - **/refresh**: Updated the channel that the command was sent in to match the listings on the website.
 
 **refresh** will:
+
 - Delete any messages which correspond to cars that are no longer listed.
 - Edit any messages that still match the filters, but have changed (e.g. price change).
 - Create messages for new listings that match the filters.
+
+## Running the bot:
+
+```sh
+docker build -t car-listing-discord-bot .
+docker run -d car-listing-discord-bot
+```
