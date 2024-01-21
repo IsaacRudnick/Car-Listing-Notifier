@@ -6,7 +6,7 @@
  * @param {Number} [timeout = 3] - in seconds
  */
 async function quickReply(interaction, message, timeout = 3) {
-	let reply = await interaction.reply(message);
+	let reply = await interaction.editReply(message);
 	setTimeout(async () => await reply.delete(), timeout * 1000);
 }
 

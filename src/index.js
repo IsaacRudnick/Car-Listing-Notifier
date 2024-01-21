@@ -1,7 +1,11 @@
 import { REST, Routes } from "discord.js";
+import { Client, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
+
 // Get CLIENT_ID and CLIENT_TOKEN from .env file
 dotenv.config();
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 const commands = [
 	{
@@ -20,6 +24,7 @@ const commands = [
 
 const rest = new REST({ version: "10" }).setToken(process.env.CLIENT_TOKEN);
 
+// Tell Discord to update slash commands
 try {
 	console.log("Started refreshing application (/) commands.");
 
@@ -31,9 +36,6 @@ try {
 } catch (error) {
 	console.error(error);
 }
-
-import { Client, GatewayIntentBits } from "discord.js";
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // On bot start, log to console
 client.on("ready", () => {
@@ -48,6 +50,7 @@ import bulkclear from "./commands/bulkclear.js";
 client.on("interactionCreate", async (interaction) => {
 	// If interaction is not a command, do nothing
 	if (!interaction.isChatInputCommand()) return;
+	await interaction.deferReply();
 	// Otherwise, run the respective command
 	switch (interaction.commandName) {
 		case "ping":
