@@ -143,6 +143,11 @@ async function getOnlineCars() {
 
 		let addCommas = (numStr) => numStr.toLocaleString("en-US");
 
+		// If not an SUV, skip
+		if (!main_div.data("bodystyle").includes("Sport Utility")) {
+			return;
+		}
+
 		// Car info
 		let vin = main_div.data("vin");
 		let url = $("a.h2").first().attr("href");
@@ -152,6 +157,11 @@ async function getOnlineCars() {
 		let mileage = addCommas(main_div.data("mileage"));
 		let externalColor = main_div.data("extcolor");
 		let internalColor = main_div.data("intcolor");
+
+		// Specifically skip Ford Escapes and EcoSports
+		if (name.includes("Escape") || name.includes("EcoSport")) {
+			return;
+		}
 
 		let car = new Car(
 			vin,
@@ -182,14 +192,14 @@ class Car {
 		externalColor,
 		internalColor
 	) {
-		this.vin = vin;
-		this.name = name;
-		this.url = url;
-		this.imageUrl = imageUrl;
-		this.price = price;
-		this.mileage = mileage;
-		this.externalColor = externalColor;
-		this.internalColor = internalColor;
+		this.vin = vin || "Not listed";
+		this.name = name || "Not listed";
+		this.url = url || "Not listed";
+		this.imageUrl = imageUrl || "Not listed";
+		this.price = price || "Not listed";
+		this.mileage = mileage || "Not listed";
+		this.externalColor = externalColor || "Not listed";
+		this.internalColor = internalColor || "Not listed";
 	}
 
 	setDiscordMessageID(messageID) {
@@ -219,6 +229,8 @@ async function createEmbed(car) {
 		"" +
 		(today.getSeconds() < 10 ? "0" : "") +
 		today.getSeconds();
+
+	console.log(car);
 
 	const embed = new EmbedBuilder()
 		.setColor(hex)
