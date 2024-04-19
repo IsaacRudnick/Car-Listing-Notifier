@@ -18,5 +18,5 @@ This is a discord bot that can be asked to search a website for cars matching sp
 
 ```sh
 docker build -t car-listing-discord-bot .
-docker run -d car-listing-discord-bot
+docker run -d --restart always car-listing-discord-bot
 ```
